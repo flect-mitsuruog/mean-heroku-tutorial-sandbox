@@ -29,7 +29,7 @@ mongo --version
 続いて利用するnpmモジュールをグローバルインストールします。
 
 ```
-npm install -g yeoman bower grunt-cli
+npm install -g yo bower grunt-cli
 npm install -g generator-angular-fullstack
 ```
 
