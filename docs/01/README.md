@@ -10,8 +10,8 @@
 まず、こちらのツールをインストールします。
 
 - [Node.js](https://nodejs.org/)
-- git
-- mondodb
+- [git(SourceTree)](https://www.atlassian.com/ja/software/sourcetree/overview)
+- [mondodb](https://www.mongodb.org/)
 
 正常にインストールできたことを確認します。
 
