@@ -45,11 +45,10 @@ module.exports = mongoose.model('Photo', PhotoSchema);
 
 ### Cloudinary APIKeyの取得
 
-まず、CloudinaryAPIキーを確認します。
-Herokuのアドオンはそれぞれ独立したサービスとなっており、Herokuのアドオンのリンクをクリックすることで、各サービスへSSOすることができます。
-Cloudinaryのサービスサイトに移動してAPIキーを確認します。
+まず、CloudinaryAPIキーを確認します。  
+CloudinaryAPIキーはHerokuのDashboardのSettingから確認することができます。
 
-![cloudinaryのアクセスキー](images/cloudinary-keys.png)
+![herokuの環境変数設定](images/heroku-settings.png)
 
 `server/config/local.env.sample.js`を同じフォルダにコピーしてください。
 `local.env.js`リネームして、CloudinaryAPIキーを設定します。
@@ -60,9 +59,7 @@ module.exports = {
   DOMAIN:           'http://localhost:9000',
   SESSION_SECRET:   'sample-secret',
 
-  CLOUDINARY_API_KEY: '<あなたのAPIKey>',
-  CLOUDINARY_API_SEACRET: '<あなたのAPISecret>',
-  CLOUDINARY_NAME: '<あなたのCloudinary名>',
+  CLOUDINARY_URL: '<あなたのAPIKey>',
 
   // Control debug level for modules using visionmedia/debug
   DEBUG: ''
@@ -88,14 +85,6 @@ __server/cloudinary/cloudinary.service.js__
 var config = require('../config/environment');
 var cloudinary = require('cloudinary');
 
-// cloudinaryのAPIKeyなどを設定します
-// 先のlocal.env.jsの内容が実行時にprocess.envにバインドされます
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SEACRET
-});
-
 // アップロード機能
 function upload(file) {
   return cloudinary.uploader.upload(file);
@@ -111,8 +100,10 @@ exports.upload = upload;
 exports.remove = remove;
 ```
 
-> // TODO
-angular-fullstackでの環境変数バインドの仕組み
+> :gift_heart: Cloudinaryへの接続情報は、CloudinaryのNode.js用SDKが環境変数の`CLOUDINARY_URL`を参照して自動設定するようになっています。  
+[cloudinary/cloudinary_npm - configuration](https://github.com/cloudinary/cloudinary_npm#configuration)
+
+> :gift_heart: angular-fullstack上はexpressサーバ起動時に`grunt-env`が`server/config/local.env.sample.js`の内容を環境変数へバインドする仕組みを持っています。
 
 ## サーバー側ルーターの設定
 
@@ -338,21 +329,12 @@ angular.module('sampleApp')
 
 ![cloudinaryのダッシュボードイメージ](images/cloudinary-dashboard.png)
 
+> :gift_heart: Herokuのアドオンはそれぞれ独立したサービスとなっており、Herokuのアドオンのリンクをクリックすることで、各サービスへSSOすることができます。
+
+
 ## Herokuへデプロイ
 
-ローカルでの動作確認が終わったら、heroku上にデプロイしましょう。
-
-まず、Cloudinaryの設定情報を登録します。
-設定情報はHerokuのDashboardにて、Settingから設定することができます。
-
-次の情報を設定します。
-
-- CLOUDINARY_API_KEY
-- CLOUDINARY_API_SEACRET
-- CLOUDINARY_NAME
-
-![herokuの環境変数設定](images/heroku-settings.png)
-
+ローカルでの動作確認が終わったら、heroku上にデプロイしましょう。  
 アプリケーションをherokuへデプロイします。
 
 ```
