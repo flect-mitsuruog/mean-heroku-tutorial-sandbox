@@ -84,6 +84,9 @@ yo angular-fullstack:heroku
 今回は　yeoman generatorのタスクを利用しているので
 Heroku createの話きぼんぬ
 
+> :gift_heart: 通常、heroku上にアプリケーションを作成する時は、git管理されているディレクトリの下で`heroku create -app <application_name>`のコマンドを実行します。  
+`-app <application_name>`の部分は省略可能です。省略した場合はHeroku上で名称が自動的に生成されます。
+
 HerokuのDashboard上でアプリケーションが作成されていることを確認します。
 
 ![herokuアプリケーションの作成](images/heroku-apps.png)
@@ -178,14 +181,24 @@ HerokuのDashboardの`Settings`タブで、Heroku上の公開URLが確認でき�
 heroku open --app <アプリケーション名>
 ```
 
-> //TODO
-git push heroku masterについてーきぼんぬ
+> :gift_heart: herokuへのデプロイはgitコマンドで実行できるようになっています。  
+これは`heroku create`した際にgit上に__heroku__という名前のリモートリポジトリが追加されているためです。  
+そのため、通常は`git push heroku master`でアプリケーションのデプロイが可能です。
 
-> //TODO
-buildpackの話キボンヌ
+> :gift_heart: heroku上にデプロイされるアプリケーションは__slug__と呼ばれる形にアーカイブされます。  
 
-> //TODO
-Procfileの話きぼんぬ
+> :gift_heart: slugを作成する際には各言語ごとの__buildpack__と呼ばれる仕組みを利用します。  
+通常は、アプリケーションの構成を見て適用するbuildpackを自動判定するため、あまり意識する必要はありません。  
+例えば、ルートディレクトリに`package.json`ファイルが存在する場合は、`node.js`と判定されます。  
+
+> :gift_heart: buildpackの指定はカスタマイズが可能です。heroku createの実行時に`--buildpack`オプションで指定するか、`heroku buildpacks:set <BUILDPACK_URL>` を実行するかのどちらかで変更できます。
+
+> :gift_heart: heroku上にslugファイルが送られると、実際にアプリケーションを起動するために実行コンテナを作成してheroku上のプロセスを割り当てる必要があります。  
+これを指定するファイルが__Procfile__です。Procfileも次の記法に基づきカスタマイズか可能です。
+```
+Dynoキー名:プロセスを起動させるコマンド
+ex) web: node server/app.js
+```
 
 > :gift_heart: 既存のプロジェクトをheroku上のアプリケーションと紐づけるためには`heroku git:remote`コマンドを利用します。
 ```
