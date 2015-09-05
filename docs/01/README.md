@@ -1,10 +1,10 @@
-# 環境構築
+# 準備
 
-1. ツール類のインストール
-1. プロジェクトの作成
+1. ツールのインストール
+1. リポジトリのクローン
 1. 動作確認
 
-## 1. ツール類のインストール
+## 1. ツールのインストール
 
 ハンズオンで必要なツール類をインストールします。
 まず、こちらのツールをインストールします。
@@ -33,21 +33,33 @@ npm install -g yo bower grunt-cli
 npm install -g generator-angular-fullstack
 ```
 
-:warning:  `permission denied`エラーが出る場合は適宜`sudo`してください。
+:warning:  `permission denied`エラーが出る場合は`sudo`してください。
 
-## 2. プロジェクト作成
-
-プロジェクト用のフォルダを作成します。
-
-```
-mkdir mean-heroku-sample
-cd mean-heroku-sample
-```
-
-angular fullstackのgeneratorを使ってプロジェクトの雛形を生成します。
-途中の設問は次のようにしてください。
+## 2. リポジトリのクローン
 
 ![yo](images/yo.png)
+
+本リポジトリをクローンします。
+
+```
+git clone // TODO
+cd mean-heroku-tutorial
+```
+
+プロジェクトで利用するnpmとbowerモジュールをダウンロードします。
+
+```
+npm install
+bower install
+```
+
+> :gift_heart: このプロジェクトはangular-fullstack Yeaman generatorを利用して生成されたものです。  
+尚、npmモジュールインストール時間を短縮するために、次のモジュールをインストールしないような変更を加えています。  
+- "grunt-contrib-imagemin": "~0.7.1"
+- "grunt-node-inspector": "~0.1.5"
+- "karma-phantomjs-launcher": "~0.1.4"  
+
+> 自分の手でプロジェクトを作成した場合は次のコマンドを実行してください。    
 
 ```
 yo angular-fullstack photoShare
@@ -78,7 +90,6 @@ Out of the box I create an AngularJS app with an Express server.
 
 ? Would you like to use mongoDB with Mongoose for data modeling? Yes
 ? Would you scaffold out an authentication boilerplate? Yes
-? Would you like to include additional oAuth strategies? Google
 ? Would you like to use socket.io? No
 
 You're using the fantastic NgComponent generator.
@@ -98,17 +109,11 @@ grunt-node-inspector@0.1.6 node_modules/grunt-node-inspector
 >
 ```
 
-> :gift_heart: モジュールを再インストールする場合は次のコマンドを実行します。
-```
-npm install
-bower install
-```
-
 ## 3. 動作確認
 
 動作確認を行います。
 
-まず、ローカルPC上でmondodbを起動します。
+まず、ローカルPC上でmondodbを起動します。  
 mondodbのデータストアの場所はプロジェクト直下の`.data`とします。
 
 ```
@@ -116,7 +121,7 @@ mkdir .data
 mongod --dbpath .data
 ```
 
-ローカル開発用サーバを起動します。
+ローカル開発用サーバを起動します。  
 <http://localhost:9000>でアプリケーションが実行し、ブラウザ上で表示されます。
 ```
 grunt serve
@@ -126,8 +131,6 @@ grunt serve
 
 Javascriptファイルなどを監視して様々なタスクがバックグラウンドで動作しています。
 そのため、ハンズオン中は開発用サーバーを起動したまま行います。
-
-> yo angular-fullstack [app-name]の話
 
 ----
 [:point_right: 2. アプリケーション構成](../02)
