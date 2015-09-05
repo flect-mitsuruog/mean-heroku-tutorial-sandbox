@@ -40,6 +40,7 @@ heroku auth:whoami
 
 - :warning: Heroku上では アプリケーション名を一意にする必要があります。重複しないような名前をつけてください。
 - :warning: 初回はmongoDBのアドオンが設定されていないため、エラーとなります。
+- :warning: エラーメッセージで提案される`heroku addons:add mongohq`は__有料プランのみ__ですので選択しないようご注意ください。
 
 ```
 yo angular-fullstack:heroku
@@ -102,7 +103,11 @@ HerokuのDashboard上でアドオンを追加します。
 - Papertrail
 - Cloudinary
 
-> :gift_heart: heroku上のアドオンは`heroku addons`コマンドで確認することができます。
+> :gift_heart: herokuにはWebサービス構築に必要な機能(ログ、監視、キャッシュ、DB、Email/SMS/Push、など)を__アドオン__と呼ばれるもので組み込める仕組みがあります。  
+[Add-ons - Heroku Elements](https://elements.heroku.com/addons)  
+`heroku addons:add <add-on名>`でコマンドラインからも追加が可能ですが、プランなどを確認できるためダッシュボード上のGUIで追加する方をオススメします。
+
+> :gift_heart: アプリケーションに追加されているアドオンは`heroku addons`コマンドで確認することができます。
 
 ## 5. デプロイ&公開
 
