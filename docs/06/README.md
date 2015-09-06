@@ -111,9 +111,7 @@ module('sampleApp')
 以上で会員ページへのサムネイル追加は完了しました。  
 画面は次のようになります。
 
-// TODO
-画像 
-
+![アップロード画像サムネイル](images/thumbnail.png)
 
 ## Herokuへデプロイ
 
