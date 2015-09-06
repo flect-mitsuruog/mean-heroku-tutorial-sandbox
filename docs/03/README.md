@@ -165,6 +165,17 @@ grunt buildcontrol:heroku
 
 ```
 
+> :warning: デプロイ時に以下のエラーが発生する場合
+```
+Warning: fatal: 'heroku' does not appear to be a git repository  
+fatal: Could not read from remote repository.  
+```
+`dist`配下のgitにherokuのリモートリポジトリが設定されていないことが原因です。  
+`dist`直下で以下のコマンドを実行してください。  
+```
+heroku git:remote -a <アプリケーション名>
+```
+
 HerokuのDashboardの`Settings`タブで、Heroku上の公開URLが確認できます。  
 ブラウザ上でアクセスしてみてください。
 
