@@ -165,6 +165,11 @@ grunt buildcontrol:heroku
 
 ```
 
+> :gift_heart: 既存のプロジェクトをheroku上のアプリケーションと紐づけるためには`heroku git:remote`コマンドを利用します。
+```
+heroku git:remote -a <アプリケーション名>
+```
+
 > :warning: デプロイ時に以下のエラーが発生する場合
 ```
 Warning: fatal: 'heroku' does not appear to be a git repository  
@@ -175,6 +180,7 @@ fatal: Could not read from remote repository.
 ```
 heroku git:remote -a <アプリケーション名>
 ```
+特に、既存のプロジェクトをgit cloneした際にherokuのリモートリポジトリが設定されておらず発生することが多いです。
 
 HerokuのDashboardの`Settings`タブで、Heroku上の公開URLが確認できます。  
 ブラウザ上でアクセスしてみてください。
@@ -205,11 +211,6 @@ heroku open --app <アプリケーション名>
 ```
 Dynoキー名:プロセスを起動させるコマンド
 ex) web: node server/app.js
-```
-
-> :gift_heart: 既存のプロジェクトをheroku上のアプリケーションと紐づけるためには`heroku git:remote`コマンドを利用します。
-```
-heroku git:remote -a <アプリケーション名>
 ```
 
 ----
