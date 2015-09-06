@@ -80,11 +80,7 @@ yo angular-fullstack:heroku
 
 :warning: `heroku`コマンドを実行する場合は、必ず`dist`フォルダで実行してください。
 
-> // TODO
-今回は　yeoman generatorのタスクを利用しているので
-Heroku createの話きぼんぬ
-
-> :gift_heart: 通常、heroku上にアプリケーションを作成する時は、git管理されているディレクトリの下で`heroku create -app <application_name>`のコマンドを実行します。  
+> :gift_heart: heroku上にアプリケーションを作成する時は、git管理されているディレクトリの下で`heroku create -app <application_name>`のコマンドを実行します。  
 `-app <application_name>`の部分は省略可能です。省略した場合はHeroku上で名称が自動的に生成されます。
 
 HerokuのDashboard上でアプリケーションが作成されていることを確認します。
