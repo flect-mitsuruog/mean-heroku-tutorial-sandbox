@@ -1,5 +1,7 @@
 # 画像削除機能の作成
 
+会員ページにアップロード画像の削除機能を追加します。
+
 1. サーバー側ルーターの設定
 2. サーバー側Controllerの作成
 3. 会員ページへ削除ボタン追加
@@ -12,7 +14,7 @@
 
 __server/api/photo/index.js__
 
-```js
+```diff
 var express = require('express');
 var controller = require('./photo.controller');
 var auth = require('../../auth/auth.service');
@@ -26,10 +28,10 @@ router.post('/me', auth.isAuthenticated(), multipartyMiddleware, controller.uplo
 router.get('/', controller.showPublic);
 router.get('/me', auth.isAuthenticated(), controller.showPrivate);
 
-// `/me/:id`と`controller.destroy`をマッピングします
-// :idはURLのパスをパラメータとして解釈するものです
-// ex) api/photos/me/1 => id=1
-router.delete('/me/:id', auth.isAuthenticated(), controller.destroy);
++ // `/me/:id`と`controller.destroy`をマッピングします
++ // :idはURLのパスをパラメータとして解釈するものです
++ // ex) api/photos/me/1 => id=1
++ router.delete('/me/:id', auth.isAuthenticated(), controller.destroy);
 
 module.exports = router;
 ```
@@ -40,33 +42,33 @@ module.exports = router;
 
 __server/api/photo/photo.controller.js__
 
-```js
+```diff
 
 exports.upload = function(req, res) { ... }
 exports.showPublic = function(req, res) { ... }
-exports.showPrivate = function(req, res) { ... }
 
-// 写真を削除
-exports.destroy = function(req, res) {
++ // 写真を削除
++ exports.destroy = function(req, res) {
 
-   // 写真をIDで検索します
-  Photo.findById(req.params.id, function (err, photo) {
++    // 写真をIDで検索します
++   Photo.findById(req.params.id, function (err, photo) {
   
-    if(err) { return handleError(res, err); }
-    if(!photo) { return res.status(404).send('Not Found'); }
++     if(err) { return handleError(res, err); }
++     if(!photo) { return res.status(404).send('Not Found'); }
 
-    // Cloudinary上から写真を削除
-    cloudinary.remove(photo.publicId).then(function() {
++     // Cloudinary上から写真を削除
++     cloudinary.remove(photo.publicId).then(function() {
 
-      // mondoDB上からも写真を削除
-      photo.remove(function(err) {
-        if(err) { return handleError(res, err); }
-        // 削除結果を返します
-        return res.status(204).send('No Content');
-      });
++       // mondoDB上からも写真を削除
++       photo.remove(function(err) {
++         if(err) { return handleError(res, err); }
++         // 削除結果を返します
++         return res.status(204).send('No Content');
++       });
       
-    });
-  });
++     });
++   });
+
 };
 ```
 
@@ -74,11 +76,12 @@ exports.destroy = function(req, res) {
 
 ## 会員ページへ削除ボタン追加
 
-会員ページのサムネイルに画像削除ボタンを追加します。
+会員ページのサムネイルに画像削除ボタンを追加します。  
+削除ボタンをクリックした際に、フロント側コントローラの`deletePhoto()`を呼び出すようにします。
 
 __client/app/me/me.html__
 
-```html
+```diff
 <div class="container">
   <!-- アップロードエリア -->
 </div>
@@ -88,10 +91,10 @@ __client/app/me/me.html__
   <h4>私の写真</h4>
   <div class="row">
     <div class="col-xs-6 col-md-3 photo" ng-repeat="photo in photos">
-      <!-- 削除ボタンを追加 -->
-      <div class="photo-button photo-button-delete" ng-click="deletePhoto(photo)">
-       <span class="glyphicon glyphicon-remove-sign"></span>
-      </div>
++       <!-- 削除ボタンを追加 -->
++       <div class="photo-button photo-button-delete" ng-click="deletePhoto(photo)">
++        <span class="glyphicon glyphicon-remove-sign"></span>
++       </div>
       <img class="photo-img" ng-src="{{photo.url}}">
     </div>
   </div>
@@ -117,8 +120,7 @@ __client/app/me/me.css__
 
 次のような画面になります。
 
-// TODO
-画像
+![削除ボタン追加](images/delete.png)
 
 ## フロント側Controller作成
 
@@ -126,21 +128,21 @@ __client/app/me/me.css__
 
 __client/app/me/me.controller.js__
 
-```js
-angular.module('sampleApp')
+```diff
+angular.module('photoShareApp')
   .controller('MeCtrl', function ($scope, $http, Upload) {
 
     $scope.upload = function (file) {
       ...
     };
 
-    $scope.deletePhoto = function (photo) {
-      $http.delete('/api/photos/me/' + photo._id).success(function () {
-        // 削除が完了した場合、リストから削除します。
-        var index = $scope.photos.indexOf(photo);
-        $scope.photos.splice(index, 1);
-      });
-    };
++    $scope.deletePhoto = function (photo) {
++      $http.delete('/api/photos/me/' + photo._id).success(function () {
++        // 削除が完了した場合、リストから削除します。
++        var index = $scope.photos.indexOf(photo);
++        $scope.photos.splice(index, 1);
++      });
++    };
 
   });
 ```
