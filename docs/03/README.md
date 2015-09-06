@@ -217,6 +217,6 @@ ex) web: node server/app.js
 ```
 
 ----
-[:point_right: 4. 画面とAPIの雛形の作成](../04)
+[:point_right: 4. 共通機能の作成と事前準備](../04)
 
 [:point_left: 2. 画像シェアサービスの仕様](../02)
