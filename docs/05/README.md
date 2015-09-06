@@ -66,6 +66,9 @@ cloudinaryに画像アップロードした際のレスポンスは次のよう�
 __server/api/photo/photo.controller.js__
 
 ```diff
+var _ = require('lodash');
+var Photo = require('./photo.model');
+
 + // cloudinary共通サービスを追加します
 + var cloudinary = require('../../cloudinary/cloudinary.service');
 
@@ -99,15 +102,13 @@ __server/api/photo/photo.controller.js__
 
 +     });
 
-  }
++  }
 
 - 自動生成されたコントローラの関数全て
 
-  function handleError(res, err) {
-    return res.status(500).send(err);
-  }
-  
-};
+function handleError(res, err) {
+  return res.status(500).send(err);
+}
 
 ```
 
@@ -117,11 +118,11 @@ __server/api/photo/photo.controller.js__
 
 会員ページへ認証フイルタを設定します。
 
-> :gift_heartt: angular-fullstackには、既にフロント側の認証モジュールが含まれているため、フロント側のルーターに認証フィルターを設定することで簡単に認証が必要なページを実現することができます。  
+> :gift_heart: angular-fullstackには、既にフロント側の認証モジュールが含まれているため、フロント側のルーターに認証フィルターを設定することで簡単に認証が必要なページを実現することができます。  
 
 __client/app/me/me.js__
 
-```js
+```diff
 'use strict';
 
 angular.module('sampleApp')
@@ -152,7 +153,7 @@ bower install --save ng-file-upload
 
 __client/app/app.js__
 
-```js
+```diff
 angular.module('photoShareApp', [
   'ngCookies',
   'ngResource',
@@ -164,7 +165,6 @@ angular.module('photoShareApp', [
 ```
 
 続いて、会員ページにアップロード用のエリアを追加します。  
-`ng-model="file"`に設定されている通り、アップロードされたファイルはフロント側のコントローラで`file`というプロパティで参照することが可能です。  
 
 __client/app/me/me.html__
 
@@ -221,7 +221,8 @@ __client/app/me/me.css__
 
 ## フロント側Controller作成
 
-続いてControllerに画像アップロード機能を追加します。
+続いてControllerに画像アップロード機能を追加します。  
+`ng-model="file"`に設定されている通り、アップロードされたファイルはフロント側のコントローラで`file`というプロパティで参照することが可能です。  
 
 __client/app/me/me.controller.js__
 
