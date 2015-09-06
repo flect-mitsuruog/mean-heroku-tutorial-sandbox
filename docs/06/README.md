@@ -91,8 +91,8 @@ __client/app/me/me.html__
 
 __client/app/me/me.controller.js__
 
-```
-module('sampleApp')
+```diff
+module('photoShareApp')
 -  .controller('MeCtrl', function ($scope, Upload) {
 +  .controller('MeCtrl', function ($scope, $http, Upload) {
 
