@@ -2,6 +2,7 @@
 
 1. WebAPI一覧
 2. 画面一覧
+3. ナビゲーションバーへ会員ページへのリンク追加
 3. 画面・WebAPIの自動生成
 
 ## 1. WebAPI一覧
@@ -33,6 +34,43 @@ API仕様は次の通りです。
 | 会員ページ | /me | 要 | 会員のプライベート画面。画像のアップロード・削除・シャア設定ができる |
 
 会員ページ以外は`angular-fullstack`でプロジェクトを作成したタイミングで自動生成されます。
+
+## ナビゲーションバーへ会員ページへのリンク追加
+
+画面上部に表示されるナビゲーションバーに会員ページへのリンクを追加します。  
+このリンクはログイン後に表示できるようにします。  
+
+`NavbarCtrl`には`isLoggedIn`というログイン済みかどうかを判定する関数がすでに存在するため、それをそのまま利用します。
+
+__client/components/navbar/navbar.html__
+
+```diff
+<div class="navbar navbar-default navbar-static-top" ng-controller="NavbarCtrl">
+  <div class="container">
+
+    ...
+    
+    <div collapse="isCollapsed" class="navbar-collapse collapse" id="navbar-main">
+      <ul class="nav navbar-nav">
+        <li ng-repeat="item in menu" ng-class="{active: isActive(item.link)}">
+            <a ng-href="{{item.link}}">{{item.title}}</a>
+        </li>
++        <li ng-show="isLoggedIn()">
++          <a ng-href="/me">私の写真</a>
++        </li>
+        <li ng-show="isAdmin()" ng-class="{active: isActive('/admin')}"><a href="/admin">Admin</a></li>
+      </ul>
+
+      ...
+      
+    </div>
+  </div>
+</div>
+```
+
+ログイン後に会員ページのリンクが表示されます。
+
+![ナビゲーションバーの会員ページリンク](images/nav.png)
 
 ## 3. 画面・WebAPIの自動生成
 
