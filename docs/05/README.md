@@ -1,7 +1,8 @@
 # 画像アップロード機能の作成
 
-2. PhotoModelの作成
-3. Cloudinary共通サービスの作成
+画像アップロード機能を追加します。  
+サーバー側にAPIを作成し、会員ページのアップロードボタンを設置してアップロード処理を追加していきます。
+
 1. サーバー側ルーターの設定
 4. サーバー側Controllerの作成
 5. フロント側ルーターの設定
@@ -9,124 +10,35 @@
 7. フロント側Controller作成
 7. Herokuへデプロイ
 
-## PhotoModelの作成
-
-mondoDB上のPhotoModelを作成します。
-
-__server/api/photo/photo.model.js__
-```js
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
-
-var PhotoSchema = new Schema({
-  name: String,
-  url: String,
-  owner: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  publicId: String,
-  share: Boolean
-});
-
-module.exports = mongoose.model('Photo', PhotoSchema);
-```
-各項目の意味などは次の通りです。
-
-|項目名|概要|
-| --- | --- |
-| name | 画像名(今回は利用しません) |
-| url | Cloudinary上の公開画像URL |
-| publicId | Cloudinary上の公開画像ID |
-| owner | 画像オーナー(Userテーブルとリレーションしています) |
-| share | 公開可否フラグ |
-
-## Cloudinary共通サービスの作成
-
-### Cloudinary APIKeyの取得
-
-まず、CloudinaryAPIキーを確認します。  
-CloudinaryAPIキーはHerokuのDashboardのSettingから確認することができます。
-
-![herokuの環境変数設定](images/heroku-settings.png)
-
-`server/config/local.env.sample.js`を同じフォルダにコピーしてください。
-`local.env.js`リネームして、CloudinaryAPIキーを設定します。
-
-__local.env.js__
-```js
-module.exports = {
-  DOMAIN:           'http://localhost:9000',
-  SESSION_SECRET:   'sample-secret',
-
-  CLOUDINARY_URL: '<あなたのAPIKey>',
-
-  // Control debug level for modules using visionmedia/debug
-  DEBUG: ''
-};
-```
-
-(注意)`local.env.js`はセキュアな情報を保存するため、git上にcommitしないように注意してください。本リポジトリでは事故を防ぐため`.gitignore`に指定しています。
-
-### 共通サービスの作成
-
-CloudinaryAPIをラップした共通サービスモジュールを作成します。  
-まず、CloudinaryのNode.js用SDKとアップロードされたファイルを扱うためのモジュールをインストールします。
-
-```
-npm install cloudinary connect-multiparty --save
-```
-
-続いて、`server/cloudinary/cloudinary.service.js`を作成します。
-
-__server/cloudinary/cloudinary.service.js__
-
-```js
-var config = require('../config/environment');
-var cloudinary = require('cloudinary');
-
-// アップロード機能
-function upload(file) {
-  return cloudinary.uploader.upload(file);
-}
-
-// 画像削除機能
-function remove(publicId) {
-  return cloudinary.api.delete_resources([publicId]);
-}
-
-// 外部モジュールとして公開
-exports.upload = upload;
-exports.remove = remove;
-```
-
-> :gift_heart: Cloudinaryへの接続情報は、CloudinaryのNode.js用SDKが環境変数の`CLOUDINARY_URL`を参照して自動設定するようになっています。  
-[cloudinary/cloudinary_npm - configuration](https://github.com/cloudinary/cloudinary_npm#configuration)
-
-> :gift_heart: angular-fullstack上はexpressサーバ起動時に`grunt-env`が`server/config/local.env.sample.js`の内容を環境変数へバインドする仕組みを持っています。
-
 ## サーバー側ルーターの設定
 
 サーバー側のルーターにて機能とURLをマッピングします。
 
 __server/api/photo/index.js__
 
-```js
+```diff
 var express = require('express');
 var controller = require('./photo.controller');
 
-// 認証モジュールを追加します
-var auth = require('../../auth/auth.service');
++ // 認証モジュールを追加します
++ var auth = require('../../auth/auth.service');
 
-// アップロード画像を取り扱うモジュールを追加します
-var multiparty = require('connect-multiparty');
-var multipartyMiddleware = multiparty();
++ // アップロード画像を取り扱うモジュールを追加します
++ var multiparty = require('connect-multiparty');
++ var multipartyMiddleware = multiparty();
 
 var router = express.Router();
 
-// `/me`と`controller.upload`をマッピングします
-// multipartyMiddlewareを経由することで、アップロードファイルをControllerにて取り扱う形に変換することができます
-router.post('/me', auth.isAuthenticated(), multipartyMiddleware, controller.upload);
++ // `/me`と`controller.upload`をマッピングします
++ // multipartyMiddlewareを経由することで、アップロードファイルをControllerにて取り扱う形に変換することができます
++ router.post('/me', auth.isAuthenticated(), multipartyMiddleware, controller.upload);
+
+- router.get('/', controller.index);
+- router.get('/:id', controller.show);
+- router.post('/', controller.create);
+- router.put('/:id', controller.update);
+- router.patch('/:id', controller.update);
+- router.delete('/:id', controller.destroy);
 
 module.exports = router;
 ```
@@ -135,58 +47,66 @@ module.exports = router;
 
 ### 画像アップロードAPI作成
 
-続いて、Controller側の処理を記述します。
+続いて、Controller側の処理を記述します。  
+cloudinaryに画像アップロードした際のレスポンスは次のようなものが返却されます。
+
+```js
+{ 
+  public_id: 'sample',
+  version: 1312461204,
+  width: 864,
+  height: 576,
+  format: 'jpg',
+  bytes: 120253,
+  url: 'http://res.cloudinary.com/demo/image/upload/v1371281596/sample.jpg',
+  secure_url: 'https://res.cloudinary.com/demo/image/upload/v1371281596/sample.jpg' 
+}
+```
 
 __server/api/photo/photo.controller.js__
 
-```js
-// cloudinary共通サービスを追加します
-var cloudinary = require('../../cloudinary/cloudinary.service');
+```diff
++ // cloudinary共通サービスを追加します
++ var cloudinary = require('../../cloudinary/cloudinary.service');
 
-// 写真をアップロード
-exports.upload = function(req, res) {
++ // 写真をアップロード
++ exports.upload = function(req, res) {
 
-  // アップロードされたファイルはmultipartyMiddlewareを経由して
-  // req.files.fileにバンドルされています
-  if(req.files.file) {
++   // アップロードされたファイルはmultipartyMiddlewareを経由して
++   // req.files.fileにバンドルされています
++   if(req.files.file) {
 
-    var file = req.files.file.path;
++     var file = req.files.file.path;
 
-    // Cloudinary上に写真をアップロード
-    cloudinary.upload(file).then(function(result){
++     // Cloudinary上に写真をアップロード
++     cloudinary.upload(file).then(function(result){
+
++       // PhotoModelを作成します
++       var photo = new Photo();
       
-      // サンプルレスポンス
-      //{ 
-      //  public_id: 'sample',
-      //  version: 1312461204,
-      //  width: 864,
-      //  height: 576,
-      //  format: 'jpg',
-      //  bytes: 120253,
-      //  url: 'http://res.cloudinary.com/demo/image/upload/v1371281596/sample.jpg',
-      //  secure_url: 'https://res.cloudinary.com/demo/image/upload/v1371281596/sample.jpg' 
-      //}
++       // 認証済みユーザの情報はreq.userにバンドルされています
++       photo.owner = req.user.id;
++       photo.name = result.version;
++       photo.url = result.url;
++       photo.publicId = result.public_id;
 
-      // PhotoModelを作成します
-      var photo = new Photo();
-      
-      // 認証済みユーザの情報はreq.userにバンドルされています
-      photo.owner = req.user.id;
-      photo.name = result.version;
-      photo.url = result.url;
-      photo.publicId = result.public_id;
++       // mondoDBへ追加します
++       Photo.create(photo, function(err, photo) {
++         if(err) { return handleError(res, err); }
++         // 作成結果を返します
++         return res.status(201).json(photo);
++       });
 
-      // mondoDBへ追加します
-      Photo.create(photo, function(err, photo) {
-        if(err) { return handleError(res, err); }
-        // 作成結果を返します
-        return res.status(201).json(photo);
-      });
-
-    });
++     });
 
   }
 
+- 自動生成されたコントローラの関数全て
+
+  function handleError(res, err) {
+    return res.status(500).send(err);
+  }
+  
 };
 
 ```
@@ -195,10 +115,9 @@ exports.upload = function(req, res) {
 
 ## フロント側ルーターの設定
 
-会員ページはログイン後にアクセスできるようになるため、ログインしていない場合はアクセスさせないようにする必要があります。
+会員ページへ認証フイルタを設定します。
 
-angular-fullstackには、既にクライアント側の認証モジュールが含まれているため、今回のようにログインしている場合のみ表示させたい場合は、ルーターの設定に認証フィルターを設定することで実現可能です。
-クライアント側のルーターは、各コンポーネントフォルダの直下に`<コンポーネント名>.js`という形で作成されています。
+> :gift_heartt: angular-fullstackには、既にフロント側の認証モジュールが含まれているため、フロント側のルーターに認証フィルターを設定することで簡単に認証が必要なページを実現することができます。  
 
 __client/app/me/me.js__
 
@@ -212,8 +131,8 @@ angular.module('sampleApp')
         url: '/me',
         templateUrl: 'app/me/me.html',
         controller: 'MeCtrl',
-        // 認証フィルターを設定します
-        authenticate: true
++        // 認証フィルターを設定します
++        authenticate: true
       });
   });
 ```
@@ -222,7 +141,8 @@ angular.module('sampleApp')
 
 ## 会員ページへアップロードボタンを追加
 
-まず、アップロード機能を追加するため、`ng-file-upload`モジュールを追加します。
+ファイルのアップロードには[danialfarid/ng-file-upload](https://github.com/danialfarid/ng-file-upload)を利用します。 
+まず、`ng-file-upload`モジュールを追加します。
 
 ```
 bower install --save ng-file-upload
@@ -239,36 +159,40 @@ angular.module('photoShareApp', [
   'ngSanitize',
   'ui.router',
   'ui.bootstrap',
-  'ngFileUpload'  // ここにモジュールを追加します
++   'ngFileUpload'  // ここにモジュールを追加します
 ])
 ```
 
-続いて、会員ページにアップロード用のエリアを追加します。
+続いて、会員ページにアップロード用のエリアを追加します。  
+`ng-model="file"`に設定されている通り、アップロードされたファイルはフロント側のコントローラで`file`というプロパティで参照することが可能です。  
 
 __client/app/me/me.html__
 
-```html
-<div class="container">
-  <div class="well">
-    <!-- ファイルをドラッグ＆ドロップするエリア -->
-    <div ngf-drop ngf-select ng-model="file" class="drop-box"
-         ngf-multiple="false" ngf-allow-dir="false" ngf-accept="'image/*'">
-         アップロードする画像をドラッグ＆ドロップしてください。</div>
-    <!-- HTML5 File APIがサポートされていない場合に表示される -->
-    <div ngf-no-file-drop>このブラウザではドラッグ＆ドロップがサポートされていません。</div>
-    <!-- アップロードするファイルのプレビュー表示 -->
-    <img ng-show="file" ngf-src="file" ngf-accept="'image/*'" class="preview-box">
-    <!-- アップロード処理を行うボタン -->
-    <div>
-      <button type="button" class="btn btn-default" ng-click="upload(file)" ng-disabled="!file">アップロード</button>
-    </div>
-  </div>
-</div>
+```diff
+
+<!-- 以降はここを編集していきます -->
+- <h1>会員ページ</h1>
+
++ <div class="container">
++   <div class="well">
++     <!-- ファイルをドラッグ＆ドロップするエリア -->
++     <div ngf-drop ngf-select ng-model="file" class="drop-box"
++          ngf-multiple="false" ngf-allow-dir="false" ngf-accept="'image/*'">
++          アップロードする画像をドラッグ＆ドロップしてください。</div>
++     <!-- HTML5 File APIがサポートされていない場合に表示される -->
++     <div ngf-no-file-drop>このブラウザではドラッグ＆ドロップがサポートされていません。</div>
++     <!-- アップロードするファイルのプレビュー表示 -->
++     <img ng-show="file" ngf-src="file" ngf-accept="'image/*'" class="preview-box">
++     <!-- アップロード処理を行うボタン -->
++     <div>
++       <button type="button" class="btn btn-default" ng-click="upload(file)" n+ g-disabled="!file">アップロード</button>
++     </div>
++   </div>
++ </div>
+
 ```
 
-> :gift_heart: ファイルのアップロードには[danialfarid/ng-file-upload](https://github.com/danialfarid/ng-file-upload)を利用します。  
-`ng-model="file"`に設定されている通り、アップロードされたファイルはフロント側のコントローラで`file`というプロパティで参照することが可能です。  
-細かな要素の説明は次の通りです。
+> :gift_heart: 細かな要素の説明は次の通りです。
 - ngf-drop:ドラッグ&ドロップでアップロードファイルを選択できるようになります。
 - ngf-select:要素をクリックするとファイル選択できるようになります。
 - ngf-multiple:ファイルの複数選択を有効にします。
@@ -301,32 +225,32 @@ __client/app/me/me.css__
 
 __client/app/me/me.controller.js__
 
-```js
-'use strict';
-
+```diff
 angular.module('photoShareApp')
-  .controller('MeCtrl', function ($scope, Upload) { // Uploadを追加します
+-   .controller('MeCtrl', function ($scope) {
++  .controller('MeCtrl', function ($scope, Upload) { // Uploadを追加します
 
-    // アップロード画像を保持するプロパティ
-    $scope.photos = [];
+-    $scope.message = 'Hello';
 
-    /* jshint unused: false */
-    $scope.upload = function (file) {
-      if(file) {
-        Upload.upload({
-          url: '/api/photos/me',
-          method: 'POST',
-          file: file
-        }).success(function (data, status, headers, config) {
-          // アップロードが完了した場合、リストに追加します。
-          $scope.photos.push(data);
-          // 成功した場合はファイルを削除します。
-          $scope.file = null;
-        }).error(function (data, status, headers, config) {
-          console.log('error status: ' + status);
-        });
-      }
-    };
++    // アップロード画像を保持するプロパティ
++    $scope.photos = [];
+
++    $scope.upload = function (file) {
++      if(file) {
++        Upload.upload({
++          url: '/api/photos/me',
++          method: 'POST',
++          file: file
++        }).success(function (data, status, headers, config) {
++          // アップロードが完了した場合、リストに追加します。
++          $scope.photos.push(data);
++          // 成功した場合はファイルを削除します。
++          $scope.file = null;
++        }).error(function (data, status, headers, config) {
++          console.log('error status: ' + status);
++        });
++      }
++    };
 
   });
 ```
@@ -358,4 +282,4 @@ grunt buildcontrol:heroku
 ----
 [:point_right: 6. アップロード画像サムネイルの作成](../06)
 
-[:point_left: 4. 画像シェアサービスの概要](../04)
+[:point_left: 4. 共通機能の作成と事前準備](../04)
