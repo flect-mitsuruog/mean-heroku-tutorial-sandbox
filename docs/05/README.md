@@ -233,7 +233,7 @@ bower install --save ng-file-upload
 __client/app/app.js__
 
 ```js
-angular.module('sampleApp', [
+angular.module('photoShareApp', [
   'ngCookies',
   'ngResource',
   'ngSanitize',
@@ -293,7 +293,7 @@ __client/app/me/me.controller.js__
 ```js
 'use strict';
 
-angular.module('sampleApp')
+angular.module('photoShareApp')
   .controller('MeCtrl', function ($scope, Upload) { // Uploadを追加します
 
     // アップロード画像を保持するプロパティ
