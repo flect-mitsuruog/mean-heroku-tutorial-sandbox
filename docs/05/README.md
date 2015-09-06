@@ -245,15 +245,15 @@ angular.module('photoShareApp', [
 
 続いて、会員ページにアップロード用のエリアを追加します。
 
-__client/app/me/me.html
+__client/app/me/me.html__
 
 ```html
 <div class="container">
   <div class="well">
     <!-- ファイルをドラッグ＆ドロップするエリア -->
-    <div ngf-drop ngf-select ng-model="file" class="drop-box"
-         ngf-drag-over-class="dragover" ngf-multiple="false" ngf-allow-dir="false"
-         ngf-accept="'image/*'">アップロードする画像をドラッグ＆ドロップしてください。</div>
+    <div ng-model="file" class="drop-box"
+         ngf-multiple="false" ngf-allow-dir="false" ngf-accept="'image/*'">
+         アップロードする画像をドラッグ＆ドロップしてください。</div>
     <!-- HTML5 File APIがサポートされていない場合に表示される -->
     <div ngf-no-file-drop>このブラウザではドラッグ＆ドロップがサポートされていません。</div>
     <!-- アップロードするファイルのプレビュー表示 -->
@@ -265,6 +265,15 @@ __client/app/me/me.html
   </div>
 </div>
 ```
+
+> :gift_heart: ファイルのアップロードには[danialfarid/ng-file-upload](https://github.com/danialfarid/ng-file-upload)を利用します。  
+`ng-model="file"`に設定されている通り、アップロードされたファイルはフロント側のコントローラで`file`というプロパティで参照することが可能です。  
+細かな要素の説明は次の通りです。
+- ngf-multiple:ファイルの複数選択を有効にします。
+- ngf-allow-dir:フォルダ単位のアップロードを有効にします。
+- ngf-accept:有効なファイルフォーマットを指定します。
+- ngf-no-file-drop:ブラウザがHTML5 File APIをサポートしていない場合に表示されます。
+- ngf-src:プレビューの参照先プロパティです。
 
 アップロードエリアのスタイルを微調整するため、スタイルを追加します。
 
